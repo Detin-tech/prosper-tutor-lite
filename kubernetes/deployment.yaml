@@ -1,0 +1,94 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prosper-tutor-lite-backend
+  labels:
+    app: prosper-tutor-lite
+    tier: backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: prosper-tutor-lite
+      tier: backend
+  template:
+    metadata:
+      labels:
+        app: prosper-tutor-lite
+        tier: backend
+    spec:
+      containers:
+      - name: backend
+        image: prosper-tutor-lite:latest
+        ports:
+        - containerPort: 8000
+        env:
+        - name: MODEL_TYPE
+          valueFrom:
+            configMapKeyRef:
+              name: prosper-tutor-config
+              key: model_type
+        - name: OLLAMA_MODEL
+          valueFrom:
+            configMapKeyRef:
+              name: prosper-tutor-config
+              key: ollama_model
+        - name: EMBEDDING_MODEL
+          valueFrom:
+            configMapKeyRef:
+              name: prosper-tutor-config
+              key: embedding_model
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "250m"
+          limits:
+            memory: "1Gi"
+            cpu: "500m"
+        volumeMounts:
+        - name: vectorstore
+          mountPath: /app/vectorstore
+        - name: courses
+          mountPath: /app/sample_courses
+      volumes:
+      - name: vectorstore
+        persistentVolumeClaim:
+          claimName: vectorstore-pvc
+      - name: courses
+        persistentVolumeClaim:
+          claimName: courses-pvc
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prosper-tutor-lite-frontend
+  labels:
+    app: prosper-tutor-lite
+    tier: frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: prosper-tutor-lite
+      tier: frontend
+  template:
+    metadata:
+      labels:
+        app: prosper-tutor-lite
+        tier: frontend
+    spec:
+      containers:
+      - name: frontend
+        image: prosper-tutor-lite:latest
+        ports:
+        - containerPort: 8501
+        env:
+        - name: API_BASE_URL
+          value: "http://prosper-tutor-lite-backend:8000"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "200m"

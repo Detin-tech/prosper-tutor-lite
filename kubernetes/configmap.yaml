@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prosper-tutor-config
+  labels:
+    app: prosper-tutor-lite
+data:
+  model_type: "ollama"
+  ollama_model: "llama2"
+  ollama_base_url: "http://ollama-service:11434"
+  embedding_model: "all-MiniLM-L6-v2"
+  vector_store_path: "/app/vectorstore"
+  course_data_path: "/app/sample_courses"
